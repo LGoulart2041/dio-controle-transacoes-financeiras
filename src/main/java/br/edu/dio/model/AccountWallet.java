@@ -19,11 +19,18 @@ public class AccountWallet extends Wallet {
     public AccountWallet(final long amount, List<String> pix) {
         super(ACCOUNT);
         this.pix = pix;
-        addMoney(amount, "Valor de criação da conta: ");
+        addMoney(amount, "Valor de criacao da conta: ");
     }
 
     public void addMoney(final long amount, final String description){
         var money = generateMoney(amount, description);
         this.money.addAll(money);
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + "AccountWallet{" +
+                "pix=" + pix +
+                '}';
     }
 }
