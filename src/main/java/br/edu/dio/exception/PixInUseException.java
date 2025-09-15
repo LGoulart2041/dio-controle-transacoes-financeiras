@@ -1,8 +1,8 @@
 package br.edu.dio.exception;
 
-public class AccountNotFoundException extends RuntimeException{
+public class PixInUseException extends RuntimeException{
 
-    public AccountNotFoundException(String message) {
+    public PixInUseException(String message) {
         super(message);
     }
 }
