@@ -7,6 +7,7 @@ public record MoneyAudit(
         UUID transactionId,
         BankService targetService,
         String description,
-        OffsetDateTime createdAt
+        OffsetDateTime createdAt,
+        long amount
 ) {
 }

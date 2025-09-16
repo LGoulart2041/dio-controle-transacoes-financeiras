@@ -17,10 +17,12 @@ public abstract class Wallet {
     private final BankService serviceType;
 
     protected final List<Money> money;
+    private final List<MoneyAudit> auditLog;
 
     public Wallet(BankService serviceType) {
         this.serviceType = serviceType;
         this.money = new ArrayList<>();
+        this.auditLog = new ArrayList<>();
     }
 
     protected List<Money> generateMoney(final long amount, final String description){
@@ -28,7 +30,8 @@ public abstract class Wallet {
                         UUID.randomUUID(),
                         serviceType,
                         description,
-                        OffsetDateTime.now()
+                        OffsetDateTime.now(),
+                        amount
                     );
         return Stream.generate(() -> new Money(history)).limit(amount).toList();
     }
@@ -42,22 +45,35 @@ public abstract class Wallet {
                 UUID.randomUUID(),
                 serviceType,
                 description,
-                OffsetDateTime.now()
+                OffsetDateTime.now(),
+                money.size()
         );
         money.forEach(m -> m.addHistory(history));
         this.money.addAll(money);
+        this.auditLog.add(history);
     }
 
-    public List<Money> reduceMoney(final long amount){
+    public List<Money> reduceMoney(final long amount, final String description){
+        var history = new MoneyAudit(
+                UUID.randomUUID(),
+                serviceType,
+                description,
+                OffsetDateTime.now(),
+                amount
+        );
+
         List<Money> toRemove = new ArrayList<>();
         for(int i = 0; i < amount; i++){
-            toRemove.add(this.money.removeFirst());
+            var m = this.money.removeFirst();
+            m.addHistory(history);
+            toRemove.add(m);
         }
+        this.auditLog.add(history);
         return toRemove;
     }
 
     public List<MoneyAudit> getFinancialTransactions(){
-        return money.stream().flatMap(m -> m.getHistory().stream()).toList();
+        return List.copyOf(auditLog);
     }
 
     @Override

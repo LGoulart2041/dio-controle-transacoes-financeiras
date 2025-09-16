@@ -11,6 +11,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static br.edu.dio.repository.CommonsRepository.checkFundsForTransaction;
@@ -20,7 +21,7 @@ public class AccountRepository {
 
     private final List<AccountWallet> accounts = new ArrayList<>();
 
-    public AccountWallet create(final List<String> pix, final long initialFunds){
+    public AccountWallet create(final Set<String> pix, final long initialFunds){
         if(!accounts.isEmpty()){
             var pixInUse = accounts.stream().flatMap(a -> a.getPix().stream()).toList();
             for(var p : pix){
@@ -42,7 +43,7 @@ public class AccountRepository {
     public long withdraw(final String pix, final long amount){
         var source = findByPix(pix);
         checkFundsForTransaction(source, amount);
-        source.reduceMoney(amount);
+        source.reduceMoney(amount, "saque");
         return amount;
     }
 
@@ -51,7 +52,7 @@ public class AccountRepository {
         checkFundsForTransaction(source, amount);
         var target = findByPix(targetPix);
         var message = "pix enviado de '" + sourcePix + "' para '" + targetPix + "'";
-        target.addMoney(source.reduceMoney(amount), source.getServiceType(), message);
+        target.addMoney(source.reduceMoney(amount, "transferencia entre contas"), source.getServiceType(), message);
     }
 
     public AccountWallet findByPix(final String pix){
@@ -59,6 +60,10 @@ public class AccountRepository {
                 .filter(a -> a.getPix().contains(pix))
                 .findFirst()
                 .orElseThrow(() -> new AccountNotFoundException("A conta com a chave pix '" + pix + "' não existe ou foi encerrada."));
+    }
+
+    public long getBalance(final String pix){
+        return findByPix(pix).getFunds();
     }
 
     public List<AccountWallet> list() {

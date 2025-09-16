@@ -20,12 +20,12 @@ public class InvestmentWallet extends Wallet {
         super(INVESTMENT);
         this.investment = investment;
         this.account = account;
-        addMoney(account.reduceMoney(amount), getServiceType(), "Investimento");
+        addMoney(account.reduceMoney(amount, "investimento"), getServiceType(), "Investimento");
     }
 
     public void updateAmount(final long percent){
         var amount = getFunds() * percent / 100;
-        var history = new MoneyAudit(UUID.randomUUID(), getServiceType(), "Rendimentos", OffsetDateTime.now());
+        var history = new MoneyAudit(UUID.randomUUID(), getServiceType(), "Rendimentos", OffsetDateTime.now(), amount);
         var money = Stream.generate(() -> new Money(history)).limit(amount).toList();
         this.money.addAll(money);
     }

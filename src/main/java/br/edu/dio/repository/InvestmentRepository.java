@@ -1,9 +1,6 @@
 package br.edu.dio.repository;
 
-import br.edu.dio.exception.AccountWithInvestmentException;
-import br.edu.dio.exception.InvestmentNotFoundException;
-import br.edu.dio.exception.PixInUseException;
-import br.edu.dio.exception.WalletNotFoundException;
+import br.edu.dio.exception.*;
 import br.edu.dio.model.AccountWallet;
 import br.edu.dio.model.Investment;
 import br.edu.dio.model.InvestmentWallet;
@@ -43,14 +40,17 @@ public class InvestmentRepository {
 
     public InvestmentWallet deposit(final String pix,final long funds){
         var wallet = findWalletByAccountPix(pix);
-        wallet.addMoney(wallet.getAccount().reduceMoney(funds), wallet.getServiceType(), "Investimento");
+        if(wallet.getAccount().getFunds() < funds) {
+            throw new NoFundsEngoughException("A conta não tem saldo suficiente para realizar o investimento.");
+        }
+        wallet.addMoney(wallet.getAccount().reduceMoney(funds, "investimento"), wallet.getServiceType(), "Investimento");
         return wallet;
     }
 
     public InvestmentWallet withdraw(final String pix, final long funds){
         var wallet = findWalletByAccountPix(pix);
         checkFundsForTransaction(wallet, funds);
-        wallet.getAccount().addMoney(wallet.reduceMoney(funds), wallet.getServiceType(), "saque de investimentos");
+        wallet.getAccount().addMoney(wallet.reduceMoney(funds, "saque investimento"), wallet.getServiceType(), "saque de investimentos");
         if(wallet.getFunds()== 0){
             wallets.remove(wallet);
         }
@@ -69,7 +69,6 @@ public class InvestmentRepository {
                 );
     }
 
-
     public InvestmentWallet findWalletByAccountPix(final String pix) {
         return wallets.stream()
                 .filter(w -> w.getAccount().getPix().contains(pix))
@@ -77,6 +76,10 @@ public class InvestmentRepository {
                 .orElseThrow(
                         () -> new WalletNotFoundException("A carteira não foi encontrada.")
                 );
+    }
+
+    public List<Investment> listInvestments(){
+        return this.investments;
     }
 
     public List<InvestmentWallet> listWallets(){
